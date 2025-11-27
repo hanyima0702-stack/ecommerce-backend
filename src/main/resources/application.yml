@@ -1,0 +1,123 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+spring:
+  application:
+    name: ecommerce-backend
+
+  # 数据源配置
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/ecommerce?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: password
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      auto-commit: true
+      idle-timeout: 30000
+      pool-name: HikariCP
+      max-lifetime: 1800000
+      connection-timeout: 30000
+      connection-test-query: SELECT 1
+
+  # JSON 配置
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    serialization:
+      write-dates-as-timestamps: false
+      fail-on-empty-beans: false
+    deserialization:
+      fail-on-unknown-properties: false
+
+# MyBatis 配置
+mybatis:
+  # XML 映射文件位置
+  mapper-locations: classpath:mapper/*.xml
+  # 实体类包路径
+  type-aliases-package: com.ecommerce.entity
+  configuration:
+    # 开启驼峰命名自动映射
+    map-underscore-to-camel-case: true
+    # 延迟加载
+    lazy-loading-enabled: false
+    # 按需加载
+    aggressive-lazy-loading: false
+    # 缓存
+    cache-enabled: true
+    # 多结果集
+    multiple-result-sets-enabled: true
+    # 使用列标签代替列名
+    use-column-label: true
+    # 自动生成主键
+    use-generated-keys: true
+    # 默认执行器类型
+    default-executor-type: REUSE
+    # 数据库超过30秒仍未响应则超时
+    default-statement-timeout: 30000
+    # 日志实现
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+
+# PageHelper 分页插件配置
+pagehelper:
+  # 数据库方言
+  helper-dialect: mysql
+  # 启用合理化时，如果pageNum<1会查询第一页，如果pageNum>pages会查询最后一页
+  reasonable: true
+  # 支持通过 Mapper 接口参数来传递分页参数
+  support-methods-arguments: true
+  # 自动计算并从配置中获取
+  auto-runtime-dialect: true
+  # 分页合理化参数，默认值为false
+  reasonable: true
+  # 页码参数名称
+  page-size-zero: true
+  # 默认页码
+  default-page-num: 1
+  # 默认每页显示数量
+  default-page-size: 10
+
+# Swagger/OpenAPI 配置
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    tags-sorter: alpha
+    operations-sorter: alpha
+
+# 日志配置
+logging:
+  level:
+    com.ecommerce: DEBUG
+    org.springframework.web: DEBUG
+    org.mybatis: DEBUG
+    java.sql: DEBUG
+    java.sql.Connection: DEBUG
+    java.sql.Statement: DEBUG
+    java.sql.PreparedStatement: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+
+# 自定义配置
+app:
+  # 分页配置
+  page:
+    default-size: 10
+    max-size: 100
+
+  # 文件上传配置
+  upload:
+    max-file-size: 10MB
+    allowed-types: jpg,jpeg,png,gif

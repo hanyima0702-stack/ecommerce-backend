@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ecommerce.mapper.ProductMapper">
+
+    <!-- 商品结果映射 -->
+    <resultMap id="BaseResultMap" type="com.ecommerce.entity.Product">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="description" property="description"/>
+        <result column="category_id" property="categoryId"/>
+        <result column="brand_id" property="brandId"/>
+        <result column="price" property="price"/>
+        <result column="original_price" property="originalPrice"/>
+        <result column="stock" property="stock"/>
+        <result column="sales" property="sales"/>
+        <result column="weight" property="weight"/>
+        <result column="image_url" property="imageUrl"/>
+        <result column="images" property="images"/>
+        <result column="sku" property="sku"/>
+        <result column="tags" property="tags"/>
+        <result column="status" property="status"/>
+        <result column="is_featured" property="isFeatured"/>
+        <result column="is_new" property="isNew"/>
+        <result column="is_hot" property="isHot"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_time" property="updatedTime"/>
+
+        <!-- 关联字段 -->
+        <result column="category_name" property="categoryName"/>
+        <result column="brand_name" property="brandName"/>
+        <result column="average_rating" property="averageRating"/>
+        <result column="review_count" property="reviewCount"/>
+    </resultMap>
+
+    <!-- 基础列名 -->
+    <sql id="Base_Column_List">
+        p.id, p.name, p.description, p.category_id, p.brand_id, p.price,
+        p.original_price, p.stock, p.sales, p.weight, p.image_url, p.images,
+        p.sku, p.tags, p.status, p.is_featured, p.is_new, p.is_hot,
+        p.created_time, p.updated_time
+    </sql>
+
+    <!-- 包含关联信息的列名 -->
+    <sql id="Full_Column_List">
+        <include refid="Base_Column_List"/>,
+        c.name AS category_name,
+        b.name AS brand_name,
+        IFNULL(AVG(pr.rating), 0) AS average_rating,
+        COUNT(pr.id) AS review_count
+    </sql>
+
+    <!-- 查询条件 -->
+    <sql id="Query_Where_Clause">
+        <where>
+            p.status = 1
+            <if test="query.keyword != null and query.keyword != ''">
+                AND (p.name LIKE CONCAT('%', #{query.keyword}, '%')
+                     OR p.description LIKE CONCAT('%', #{query.keyword}, '%')
+                     OR p.sku LIKE CONCAT('%', #{query.keyword}, '%'))
+            </if>
+            <if test="query.categoryIds != null and query.categoryIds.size() > 0">
+                AND p.category_id IN
+                <foreach collection="query.categoryIds" item="categoryId" open="(" separator="," close=")">
+                    #{categoryId}
+                </foreach>
+            </if>
+            <if test="query.brandIds != null and query.brandIds.size() > 0">
+                AND p.brand_id IN
+                <foreach collection="query.brandIds" item="brandId" open="(" separator="," close=")">
+                    #{brandId}
+                </foreach>
+            </if>
+            <if test="query.minPrice != null">
+                AND p.price >= #{query.minPrice}
+            </if>
+            <if test="query.maxPrice != null">
+                AND p.price &lt;= #{query.maxPrice}
+            </if>
+            <if test="query.tag != null and query.tag != ''">
+                AND FIND_IN_SET(#{query.tag}, p.tags)
+            </if>
+            <if test="query.isFeatured != null">
+                AND p.is_featured = #{query.isFeatured}
+            </if>
+            <if test="query.isNew != null">
+                AND p.is_new = #{query.isNew}
+            </if>
+            <if test="query.isHot != null">
+                AND p.is_hot = #{query.isHot}
+            </if>
+            <if test="query.status != null">
+                AND p.status = #{query.status}
+            </if>
+        </where>
+    </sql>
+
+    <!-- 根据条件查询商品列表 -->
+    <select id="selectProductList" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM product p
+        <include refid="Query_Where_Clause"/>
+        ORDER BY ${query.sortBy} ${query.sortOrder}
+    </select>
+
+    <!-- 根据条件查询商品列表（包含关联信息） -->
+    <select id="selectProductListWithInfo" resultMap="FullResultMap">
+        SELECT <include refid="Full_Column_List"/>
+        FROM product p
+        LEFT JOIN category c ON p.category_id = c.id
+        LEFT JOIN brand b ON p.brand_id = b.id
+        LEFT JOIN product_review pr ON p.id = pr.product_id
+        <include refid="Query_Where_Clause"/>
+        GROUP BY p.id
+        ORDER BY ${query.sortBy} ${query.sortOrder}
+    </select>
+
+    <!-- 根据ID查询商品详情 -->
+    <select id="selectProductById" resultMap="FullResultMap">
+        SELECT <include refid="Full_Column_List"/>
+        FROM product p
+        LEFT JOIN category c ON p.category_id = c.id
+        LEFT JOIN brand b ON p.brand_id = b.id
+        LEFT JOIN product_review pr ON p.id = pr.product_id
+        WHERE p.id = #{id}
+        GROUP BY p.id
+    </select>
+
+    <!-- 查询商品总数 -->
+    <select id="selectProductCount" resultType="java.lang.Long">
+        SELECT COUNT(DISTINCT p.id)
+        FROM product p
+        <include refid="Query_Where_Clause"/>
+    </select>
+
+    <!-- 根据SKU查询商品 -->
+    <select id="selectProductBySku" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM product p
+        WHERE p.sku = #{sku}
+        AND p.status = 1
+    </select>
+
+    <!-- 查询推荐商品 -->
+    <select id="selectFeaturedProducts" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM product p
+        WHERE p.is_featured = 1
+        AND p.status = 1
+        ORDER BY p.sort_order ASC, p.created_time DESC
+        <if test="limit != null and limit > 0">
+            LIMIT #{limit}
+        </if>
+    </select>
+
+    <!-- 查询新品商品 -->
+    <select id="selectNewProducts" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM product p
+        WHERE p.is_new = 1
+        AND p.status = 1
+        ORDER BY p.created_time DESC
+        <if test="limit != null and limit > 0">
+            LIMIT #{limit}
+        </if>
+    </select>
+
+    <!-- 查询热销商品 -->
+    <select id="selectHotProducts" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM product p
+        WHERE p.is_hot = 1
+        AND p.status = 1
+        ORDER BY p.sales DESC, p.created_time DESC
+        <if test="limit != null and limit > 0">
+            LIMIT #{limit}
+        </if>
+    </select>
+
+    <!-- 查询相关商品 -->
+    <select id="selectRelatedProducts" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM product p
+        WHERE p.category_id = #{categoryId}
+        AND p.id != #{productId}
+        AND p.status = 1
+        ORDER BY p.sales DESC, p.created_time DESC
+        <if test="limit != null and limit > 0">
+            LIMIT #{limit}
+        </if>
+    </select>
+
+    <!-- 更新商品库存 -->
+    <update id="updateProductStock">
+        UPDATE product
+        SET stock = #{stock}, updated_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 增加商品销量 -->
+    <update id="increaseProductSales">
+        UPDATE product
+        SET sales = sales + #{sales}, updated_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 批量查询商品 -->
+    <select id="selectProductsByIds" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM product p
+        WHERE p.id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        AND p.status = 1
+        ORDER BY FIELD(id,
+        <foreach collection="ids" item="id" separator=",">
+            #{id}
+        </foreach>)
+    </select>
+
+</mapper>
