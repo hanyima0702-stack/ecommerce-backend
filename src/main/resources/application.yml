@@ -17,7 +17,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/ecommerce?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: root
-    password: password
+    password: xmy123456
     hikari:
       minimum-idle: 5
       maximum-pool-size: 20
@@ -76,8 +76,6 @@ pagehelper:
   support-methods-arguments: true
   # 自动计算并从配置中获取
   auto-runtime-dialect: true
-  # 分页合理化参数，默认值为false
-  reasonable: true
   # 页码参数名称
   page-size-zero: true
   # 默认页码

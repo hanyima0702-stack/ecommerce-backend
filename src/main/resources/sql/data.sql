@@ -55,13 +55,73 @@ INSERT INTO `product` (`name`, `description`, `category_id`, `brand_id`, `price`
 ('RoboVac G30', 'Intelligent robot vacuum cleaner with mapping', 9, 4, 299.00, 350.00, 35, 250, '/images/products/robot-vacuum.jpg', 'SS-ROBO-G30', 'vacuum,robot,smart', 1, 1, 1, 0),
 ('Air Purifier Pro', 'HEPA air purifier for large rooms', 10, 6, 199.00, 250.00, 45, 180, '/images/products/air-purifier.jpg', 'SN-AIR-PRO', 'air,purifier,hepa', 1, 0, 0, 0);
 
--- 5. 初始化商品评价数据
-INSERT INTO `product_review` (`product_id`, `user_id`, `order_id`, `rating`, `content`, `is_anonymous`, `status`) VALUES
-(1, 2, 1, 5, '非常棒的跑鞋！缓震效果很好，长距离跑步也不会累。', 0, 1),
-(1, 2, 2, 4, '质量不错，但是价格有点贵。', 1, 1),
-(2, 2, 3, 5, '日常训练的完美选择，非常舒适。', 0, 1),
-(3, 2, 4, 5, '越野跑神器！抓地力超强，雨天也能跑。', 0, 1),
-(4, 2, 5, 4, '轻便透气，适合速度训练。', 1, 1),
-(8, 2, 6, 5, '拍照效果惊艳，系统流畅，值得购买！', 0, 1),
-(9, 2, 7, 4, 'S Pen很好用，但是机身有点重。', 1, 1),
-(12, 2, 8, 5, '降噪效果一流，音质出色，续航也不错。', 0, 1);
+-- 5. 初始化订单数据
+INSERT INTO `order_info` (`order_no`, `user_id`, `total_amount`, `shipping_fee`, `discount_amount`, `actual_amount`, `payment_method`, `payment_status`, `payment_time`, `order_status`, `shipping_name`, `shipping_phone`, `shipping_address`, `shipping_province`, `shipping_city`, `shipping_district`, `shipping_zip_code`, `shipping_time`, `receive_time`, `remark`) VALUES
+-- 已完成订单 (购买 iPhone 15 Pro)
+('20231026001', 2, 999.00, 30.00, 0.00, 1029.00, 1, 1, '2023-10-26 14:30:00', 4, '张三', '13800138001', '北京市朝阳区建国路88号SOHO现代城A座2108室', '北京市', '北京市', '朝阳区', '100022', '2023-10-27 10:00:00', '2023-10-28 16:30:00', '请快递到门'),
+
+-- 已发货订单 (购买 TrailBlazer XT)
+('20231024005', 2, 150.00, 15.00, 20.00, 145.00, 2, 1, '2023-10-24 11:20:00', 3, '张三', '13800138001', '北京市朝阳区建国路88号SOHO现代城A座2108室', '北京市', '北京市', '朝阳区', '100022', '2023-10-25 09:15:00', NULL, '包装要牢固'),
+
+-- 待付款订单 (购买 Sony WH-1000XM5)
+('20231023011', 2, 399.00, 0.00, 0.00, 399.00, NULL, 0, NULL, 1, '张三', '13800138001', '北京市朝阳区建国路88号SOHO现代城A座2108室', '北京市', '北京市', '朝阳区', '100022', NULL, NULL, '需要发票'),
+
+-- 已取消订单 (购买多款运动鞋)
+('20231022018', 2, 275.50, 20.00, 50.00, 245.50, NULL, 0, NULL, 5, '张三', '13800138001', '北京市朝阳区建国路88号SOHO现代城A座2108室', '北京市', '北京市', '朝阳区', '100022', NULL, NULL, '用户主动取消'),
+
+-- 其他已完成订单
+('20231020003', 2, 175.00, 10.00, 0.00, 185.00, 1, 1, '2023-10-20 16:45:00', 4, '张三', '13800138001', '北京市朝阳区建国路88号SOHO现代城A座2108室', '北京市', '北京市', '朝阳区', '100022', '2023-10-21 14:00:00', '2023-10-22 10:20:00', NULL),
+
+('20231018007', 2, 1299.00, 25.00, 100.00, 1224.00, 3, 1, '2023-10-18 09:30:00', 4, '张三', '13800138001', '北京市朝阳区建国路88号SOHO现代城A座2108室', '北京市', '北京市', '朝阳区', '100022', '2023-10-19 11:00:00', '2023-10-20 15:45:00', '商品质量很好'),
+
+('20231015012', 2, 395.00, 15.00, 0.00, 410.00, 2, 1, '2023-10-15 20:15:00', 4, '张三', '13800138001', '北京市朝阳区建国路88号SOHO现代城A座2108室', '北京市', '北京市', '朝阳区', '100022', '2023-10-16 13:30:00', '2023-10-17 09:10:00', NULL);
+
+-- 6. 初始化购物车数据
+INSERT INTO `cart` (`user_id`, `product_id`, `quantity`, `selected`) VALUES
+-- 测试用户 (user_id = 2) 的购物车商品
+(2, 1, 1, 1),  -- Air Zoom Pegasus，选中
+(2, 2, 1, 1),  -- Cloud Runner 5，选中
+(2, 3, 1, 0),  -- TrailBlazer XT，未选中
+(2, 5, 1, 1),  -- Classic Slip-On，选中
+(2, 6, 1, 0),  -- Urban Minimalist，未选中
+(2, 8, 1, 1),  -- iPhone 15 Pro，选中
+(2, 12, 1, 1); -- Sony WH-1000XM5，选中
+
+-- 7. 初始化订单商品数据
+INSERT INTO `order_item` (`order_id`, `product_id`, `product_name`, `product_image`, `price`, `quantity`, `total_price`) VALUES
+-- 订单 20231026001 的商品 (iPhone 15 Pro)
+(1, 8, 'iPhone 15 Pro', '/images/products/iphone15.jpg', 999.00, 1, 999.00),
+
+-- 订单 20231024005 的商品 (TrailBlazer XT)
+(2, 3, 'TrailBlazer XT', '/images/products/nike-trail.jpg', 150.00, 1, 150.00),
+
+-- 订单 20231023011 的商品 (Sony WH-1000XM5)
+(3, 12, 'Sony WH-1000XM5', '/images/products/sony-headphones.jpg', 399.00, 1, 399.00),
+
+-- 订单 20231022018 的商品 (多个运动鞋)
+(4, 1, 'Air Zoom Pegasus', '/images/products/nike-pegasus.jpg', 120.00, 2, 240.00),
+(4, 2, 'Cloud Runner 5', '/images/products/adidas-cloud.jpg', 95.50, 1, 95.50),
+
+-- 订单 20231020003 的商品 (多个商品)
+(5, 4, 'Swift Pace Trainer', '/images/products/adidas-swift.jpg', 110.00, 1, 110.00),
+(5, 5, 'Classic Slip-On', '/images/products/nike-slipon.jpg', 65.00, 1, 65.00),
+
+-- 订单 20231018007 的商品 (iPhone 15 Pro - 使用折扣价)
+(6, 8, 'iPhone 15 Pro', '/images/products/iphone15.jpg', 1299.00, 1, 1299.00),
+
+-- 订单 20231015012 的商品 (多个商品)
+(7, 3, 'TrailBlazer XT', '/images/products/nike-trail.jpg', 150.00, 1, 150.00),
+(7, 4, 'Swift Pace Trainer', '/images/products/adidas-swift.jpg', 110.00, 1, 110.00),
+(7, 12, 'Sony WH-1000XM5', '/images/products/sony-headphones.jpg', 399.00, 1, 399.00);
+
+-- 8. 初始化商品评价数据
+INSERT INTO `product_review` (`product_id`, `user_id`, `order_id`, `rating`, `content`, `images`, `is_anonymous`, `status`) VALUES
+-- 对应订单中的商品评价
+(1, 2, 4, 5, '非常棒的跑鞋！缓震效果很好，长距离跑步也不会累。', '["/images/reviews/pegasus-1.jpg", "/images/reviews/pegasus-2.jpg"]', 0, 1),
+(2, 2, 4, 4, '质量不错，但是价格有点贵。', NULL, 1, 1),
+(4, 2, 5, 5, '日常训练的完美选择，非常舒适。', NULL, 0, 1),
+(5, 2, 5, 5, '经典款，百搭又舒适，推荐购买！', NULL, 1, 1),
+(8, 2, 1, 5, '拍照效果惊艳，系统流畅，值得购买！', '["/images/reviews/iphone-1.jpg", "/images/reviews/iphone-2.jpg"]', 0, 1),
+(3, 2, 2, 5, '越野跑神器！抓地力超强，雨天也能跑。', '["/images/reviews/trail-1.jpg"]', 0, 1),
+(4, 2, 7, 4, '轻便透气，适合速度训练。', NULL, 1, 1),
+(12, 2, 7, 5, '降噪效果一流，音质出色，续航也不错。', NULL, 0, 1);

@@ -2,8 +2,8 @@ package com.ecommerce.dto;
 
 import lombok.Data;
 
-import javax.validation.constraints.Min;
-import javax.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;

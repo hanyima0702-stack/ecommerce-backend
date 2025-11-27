@@ -3,7 +3,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ecommerce.mapper.ProductMapper">
 
-    <!-- 商品结果映射 -->
+    <!-- 基础商品结果映射（仅商品本身字段） -->
     <resultMap id="BaseResultMap" type="com.ecommerce.entity.Product">
         <id column="id" property="id"/>
         <result column="name" property="name"/>
@@ -25,7 +25,17 @@
         <result column="is_hot" property="isHot"/>
         <result column="created_time" property="createdTime"/>
         <result column="updated_time" property="updatedTime"/>
+    </resultMap>
 
+    <!-- 列表商品结果映射（包含简单关联字段） -->
+    <resultMap id="ListResultMap" type="com.ecommerce.entity.Product" extends="BaseResultMap">
+        <!-- 关联字段 -->
+        <result column="category_name" property="categoryName"/>
+        <result column="brand_name" property="brandName"/>
+    </resultMap>
+
+    <!-- 完整商品结果映射（包含关联字段） -->
+    <resultMap id="FullResultMap" type="com.ecommerce.entity.Product" extends="BaseResultMap">
         <!-- 关联字段 -->
         <result column="category_name" property="categoryName"/>
         <result column="brand_name" property="brandName"/>
@@ -43,11 +53,14 @@
 
     <!-- 包含关联信息的列名 -->
     <sql id="Full_Column_List">
-        <include refid="Base_Column_List"/>,
+        p.id, p.name, p.description, p.category_id, p.brand_id, p.price,
+        p.original_price, p.stock, p.sales, p.weight, p.image_url, p.images,
+        p.sku, p.tags, p.status, p.is_featured, p.is_new, p.is_hot,
+        p.created_time, p.updated_time,
         c.name AS category_name,
         b.name AS brand_name,
         IFNULL(AVG(pr.rating), 0) AS average_rating,
-        COUNT(pr.id) AS review_count
+        COUNT(DISTINCT pr.id) AS review_count
     </sql>
 
     <!-- 查询条件 -->
@@ -96,9 +109,17 @@
     </sql>
 
     <!-- 根据条件查询商品列表 -->
-    <select id="selectProductList" resultMap="BaseResultMap">
-        SELECT <include refid="Base_Column_List"/>
+    <select id="selectProductList" resultMap="ListResultMap">
+        SELECT
+            p.id, p.name, p.description, p.category_id, p.brand_id, p.price,
+            p.original_price, p.stock, p.sales, p.weight, p.image_url, p.images,
+            p.sku, p.tags, p.status, p.is_featured, p.is_new, p.is_hot,
+            p.created_time, p.updated_time,
+            c.name AS category_name,
+            b.name AS brand_name
         FROM product p
+        LEFT JOIN category c ON p.category_id = c.id
+        LEFT JOIN brand b ON p.brand_id = b.id
         <include refid="Query_Where_Clause"/>
         ORDER BY ${query.sortBy} ${query.sortOrder}
     </select>
@@ -117,13 +138,21 @@
 
     <!-- 根据ID查询商品详情 -->
     <select id="selectProductById" resultMap="FullResultMap">
-        SELECT <include refid="Full_Column_List"/>
+        SELECT
+            p.id, p.name, p.description, p.category_id, p.brand_id, p.price,
+            p.original_price, p.stock, p.sales, p.weight, p.image_url, p.images,
+            p.sku, p.tags, p.status, p.is_featured, p.is_new, p.is_hot,
+            p.created_time, p.updated_time,
+            c.name AS category_name,
+            b.name AS brand_name,
+            IFNULL(AVG(pr.rating), 0) AS average_rating,
+            COUNT(pr.id) AS review_count
         FROM product p
         LEFT JOIN category c ON p.category_id = c.id
         LEFT JOIN brand b ON p.brand_id = b.id
         LEFT JOIN product_review pr ON p.id = pr.product_id
         WHERE p.id = #{id}
-        GROUP BY p.id
+        GROUP BY p.id, c.name, b.name
     </select>
 
     <!-- 查询商品总数 -->
