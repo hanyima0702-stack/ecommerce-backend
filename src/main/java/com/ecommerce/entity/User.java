@@ -1,9 +1,13 @@
 package com.ecommerce.entity;
 
 import lombok.Data;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
  * 用户实体类
@@ -12,7 +16,7 @@ import java.time.LocalDateTime;
  * @version 1.0.0
  */
 @Data
-public class User {
+public class User implements UserDetails {
 
     /**
      * 用户ID
@@ -101,5 +105,32 @@ public class User {
             case 2: return "女";
             default: return "未知";
         }
+    }
+
+    // ===================== UserDetails接口实现 =====================
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        // 简单实现，返回空权限列表
+        // 实际项目中可以根据角色返回相应的权限
+        return Collections.emptyList();
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        // 账户未过期
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        // 账户未锁定
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        // 凭证未过期
+        return true;
     }
 }

@@ -89,6 +89,20 @@ public class Result<T> implements Serializable {
     }
 
     /**
+     * 失败响应（自定义字符串码和消息）
+     */
+    public static <T> Result<T> error(String code, String message) {
+        // 尝试将字符串码转换为整数，如果失败则使用默认的500错误码
+        Integer errorCode;
+        try {
+            errorCode = Integer.parseInt(code);
+        } catch (NumberFormatException e) {
+            errorCode = 500;
+        }
+        return new Result<>(errorCode, message, null);
+    }
+
+    /**
      * 参数错误响应
      */
     public static <T> Result<T> badRequest(String message) {

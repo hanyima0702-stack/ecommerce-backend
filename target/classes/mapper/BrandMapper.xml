@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ecommerce.mapper.BrandMapper">
+
+    <!-- 品牌结果映射 -->
+    <resultMap id="BrandResultMap" type="com.ecommerce.entity.Brand">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="logo" property="logo"/>
+        <result column="description" property="description"/>
+        <result column="sort_order" property="sortOrder"/>
+        <result column="status" property="status"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_time" property="updatedTime"/>
+    </resultMap>
+
+    <!-- 基础列名 -->
+    <sql id="Brand_Column_List">
+        id, name, logo, description, sort_order,
+        status, created_time, updated_time
+    </sql>
+
+    <!-- 查询所有品牌 -->
+    <select id="selectAllBrands" resultMap="BrandResultMap">
+        SELECT <include refid="Brand_Column_List"/>
+        FROM brand
+        WHERE status = 1
+        <choose>
+            <when test="sortBy != null and sortBy != ''">
+                <choose>
+                    <when test="sortBy == 'name'">
+                        ORDER BY name
+                        <if test="sortOrder != null and sortOrder != ''">
+                            <choose>
+                                <when test="sortOrder == 'asc'">ASC</when>
+                                <otherwise>DESC</otherwise>
+                            </choose>
+                        </if>
+                    </when>
+                    <otherwise>
+                        ORDER BY sort_order ASC
+                    </otherwise>
+                </choose>
+                <if test="sortOrder != null and sortOrder != ''">
+                    <choose>
+                        <when test="sortOrder == 'asc'">ASC</when>
+                        <otherwise>DESC</otherwise>
+                    </choose>
+                </if>
+            </when>
+            <otherwise>
+                ORDER BY sort_order ASC, id ASC
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 根据ID查询品牌 -->
+    <select id="selectBrandById" resultMap="BrandResultMap">
+        SELECT <include refid="Brand_Column_List"/>
+        FROM brand
+        WHERE id = #{id}
+        AND status = 1
+    </select>
+
+    <!-- 查询推荐品牌 -->
+    <select id="selectFeaturedBrands" resultMap="BrandResultMap">
+        SELECT <include refid="Brand_Column_List"/>
+        FROM brand
+        WHERE status = 1
+        ORDER BY sort_order ASC, id ASC
+        <if test="limit != null and limit > 0">
+            LIMIT #{limit}
+        </if>
+    </select>
+
+    <!-- 根据名称搜索品牌 -->
+    <select id="selectBrandsByName" resultMap="BrandResultMap">
+        SELECT <include refid="Brand_Column_List"/>
+        FROM brand
+        WHERE name LIKE CONCAT('%', #{name}, '%')
+        AND status = 1
+        ORDER BY sort_order ASC, id ASC
+        LIMIT 20
+    </select>
+
+    <!-- 按排序查询品牌 -->
+    <select id="selectBrandsSorted" resultMap="BrandResultMap">
+        SELECT <include refid="Brand_Column_List"/>
+        FROM brand
+        WHERE status = 1
+        <choose>
+            <when test="sortBy == 'name'">
+                ORDER BY name
+                <if test="sortOrder == 'asc'">ASC</if>
+                <if test="sortOrder == 'desc'">DESC</if>
+            </when>
+            <otherwise>
+                ORDER BY sort_order
+                <if test="sortOrder == 'asc'">ASC</if>
+                <if test="sortOrder == 'desc'">DESC</if>
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 插入品牌 -->
+    <insert id="insertBrand" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO brand (
+            name, logo, description, sort_order,
+            status, created_time, updated_time
+        ) VALUES (
+            #{name},
+            #{logo},
+            #{description},
+            #{sortOrder},
+            #{status},
+            NOW(),
+            NOW()
+        )
+    </insert>
+
+    <!-- 更新品牌 -->
+    <update id="updateBrand">
+        UPDATE brand
+        SET name = #{name},
+            logo = #{logo},
+            description = #{description},
+            sort_order = #{sortOrder},
+            status = #{status},
+            updated_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除品牌 -->
+    <update id="deleteBrand">
+        UPDATE brand
+        SET status = 0,
+            updated_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>

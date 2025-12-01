@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ecommerce.mapper.CartMapper">
+
+    <!-- 购物车结果映射 -->
+    <resultMap id="CartResultMap" type="com.ecommerce.entity.Cart">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="item_count" property="itemCount"/>
+        <result column="subtotal" property="subtotal"/>
+        <result column="shipping_fee" property="shippingFee"/>
+        <result column="discount_amount" property="discountAmount"/>
+        <result column="total_amount" property="totalAmount"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_time" property="updatedTime"/>
+    </resultMap>
+
+    <!-- 购物车商品结果映射 -->
+    <resultMap id="CartItemResultMap" type="com.ecommerce.entity.CartItem">
+        <id column="id" property="id"/>
+        <result column="cart_id" property="cartId"/>
+        <result column="product_id" property="productId"/>
+        <result column="sku" property="sku"/>
+        <result column="product_name" property="productName"/>
+        <result column="product_description" property="productDescription"/>
+        <result column="product_image_url" property="productImageUrl"/>
+        <result column="product_price" property="productPrice"/>
+        <result column="product_original_price" property="productOriginalPrice"/>
+        <result column="product_stock" property="productStock"/>
+        <result column="product_weight" property="productWeight"/>
+        <result column="variant" property="variant" typeHandler="com.ecommerce.handler.JsonTypeHandler"/>
+        <result column="quantity" property="quantity"/>
+        <result column="total_price" property="totalPrice"/>
+        <result column="selected" property="selected"/>
+        <result column="product_status" property="productStatus"/>
+        <result column="remarks" property="remarks"/>
+        <result column="status" property="status"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_time" property="updatedTime"/>
+    </resultMap>
+
+    <!-- 包含商品信息的购物车商品结果映射 -->
+    <resultMap id="CartItemWithProductResultMap" type="com.ecommerce.entity.CartItem" extends="CartItemResultMap">
+        <!-- 商品关联信息 -->
+        <result column="product_category_name" property="categoryName"/>
+        <result column="product_brand_name" property="brandName"/>
+    </resultMap>
+
+    <!-- 基础列名 -->
+    <sql id="Cart_Column_List">
+        id, user_id, item_count, subtotal, shipping_fee, discount_amount,
+        total_amount, created_time, updated_time
+    </sql>
+
+    <!-- 购物车商品基础列名 -->
+    <sql id="CartItem_Column_List">
+        id, cart_id, product_id, sku, product_name, product_description,
+        product_image_url, product_price, product_original_price, product_stock,
+        product_weight, variant, quantity, total_price, selected, product_status,
+        remarks, status, created_time, updated_time
+    </sql>
+
+    <!-- 包含商品信息的列名 -->
+    <sql id="CartItem_With_Product_Column_List">
+        ci.id, ci.cart_id, ci.product_id, ci.sku, ci.product_name, ci.product_description,
+        ci.product_image_url, ci.product_price, ci.product_original_price, ci.product_stock,
+        ci.product_weight, ci.variant, ci.quantity, ci.total_price, ci.selected, ci.product_status,
+        ci.remarks, ci.status, ci.created_time, ci.updated_time,
+        c.name AS product_category_name,
+        b.name AS product_brand_name
+    </sql>
+
+    <!-- 根据用户ID获取购物车 -->
+    <select id="selectCartByUserId" resultMap="CartResultMap">
+        SELECT <include refid="Cart_Column_List"/>
+        FROM cart
+        WHERE user_id = #{userId}
+        AND status = 1
+        ORDER BY updated_time DESC
+        LIMIT 1
+    </select>
+
+    <!-- 插入购物车 -->
+    <insert id="insertCart" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO cart (
+            user_id, item_count, subtotal, shipping_fee, discount_amount,
+            total_amount, status, created_time, updated_time
+        ) VALUES (
+            #{userId},
+            #{itemCount},
+            #{subtotal},
+            #{shippingFee},
+            #{discountAmount},
+            #{totalAmount},
+            1,
+            NOW(),
+            NOW()
+        )
+    </insert>
+
+    <!-- 更新购物车 -->
+    <update id="updateCart">
+        UPDATE cart
+        SET item_count = #{itemCount},
+            subtotal = #{subtotal},
+            shipping_fee = #{shippingFee},
+            discount_amount = #{discountAmount},
+            total_amount = #{totalAmount},
+            updated_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据购物车ID获取购物车商品列表 -->
+    <select id="selectCartItemsByCartId" resultMap="CartItemWithProductResultMap">
+        SELECT <include refid="CartItem_With_Product_Column_List"/>
+        FROM cart_item_new ci
+        LEFT JOIN product p ON ci.product_id = p.id
+        LEFT JOIN category c ON p.category_id = c.id
+        LEFT JOIN brand b ON p.brand_id = b.id
+        WHERE ci.cart_id = #{cartId}
+        AND ci.status = 1
+        ORDER BY ci.created_time DESC
+    </select>
+
+    <!-- 插入购物车商品 -->
+    <insert id="insertCartItem" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO cart_item_new (
+            cart_id, product_id, sku, product_name, product_description,
+            product_image_url, product_price, product_original_price, product_stock,
+            product_weight, variant, quantity, total_price, selected,
+            product_status, remarks, status, created_time, updated_time
+        ) VALUES (
+            #{cartId},
+            #{productId},
+            #{sku},
+            #{productName},
+            #{productDescription},
+            #{productImageUrl},
+            #{productPrice},
+            #{productOriginalPrice},
+            #{productStock},
+            #{productWeight},
+            #{variant, typeHandler=com.ecommerce.handler.JsonTypeHandler},
+            #{quantity},
+            #{totalPrice},
+            #{selected},
+            #{productStatus},
+            #{remarks},
+            #{status},
+            NOW(),
+            NOW()
+        )
+    </insert>
+
+    <!-- 更新购物车商品 -->
+    <update id="updateCartItem">
+        UPDATE cart_item
+        SET quantity = #{quantity},
+            total_price = #{totalPrice},
+            selected = #{selected},
+            remarks = #{remarks},
+            updated_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 根据ID获取购物车商品 -->
+    <select id="selectCartItemById" resultMap="CartItemWithProductResultMap">
+        SELECT <include refid="CartItem_With_Product_Column_List"/>
+        FROM cart_item ci
+        LEFT JOIN product p ON ci.product_id = p.id
+        LEFT JOIN category c ON p.category_id = c.id
+        LEFT JOIN brand b ON p.brand_id = b.id
+        WHERE ci.id = #{id}
+        AND ci.status = 1
+    </select>
+
+    <!-- 根据购物车ID和商品ID获取购物车商品 -->
+    <select id="selectCartItemByCartIdAndProductId" resultMap="CartItemResultMap">
+        SELECT <include refid="CartItem_Column_List"/>
+        FROM cart_item
+        WHERE cart_id = #{cartId}
+        AND product_id = #{productId}
+        AND status = 1
+        LIMIT 1
+    </select>
+
+    <!-- 根据购物车ID和SKU获取购物车商品 -->
+    <select id="selectCartItemByCartIdAndSku" resultMap="CartItemResultMap">
+        SELECT <include refid="CartItem_Column_List"/>
+        FROM cart_item
+        WHERE cart_id = #{cartId}
+        AND sku = #{sku}
+        AND status = 1
+        LIMIT 1
+    </select>
+
+    <!-- 删除购物车商品 -->
+    <update id="deleteCartItem">
+        UPDATE cart_item
+        SET status = 0,
+            updated_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 批量删除购物车商品 -->
+    <update id="deleteCartItems">
+        UPDATE cart_item
+        SET status = 0,
+            updated_time = NOW()
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <!-- 根据购物车ID删除所有购物车商品 -->
+    <update id="deleteCartItemsByCartId">
+        UPDATE cart_item
+        SET status = 0,
+            updated_time = NOW()
+        WHERE cart_id = #{cartId}
+        AND status = 1
+    </update>
+
+    <!-- 根据用户ID删除购物车 -->
+    <update id="deleteCartByUserId">
+        UPDATE cart
+        SET status = 0,
+            updated_time = NOW()
+        WHERE user_id = #{userId}
+    </update>
+
+    <!-- 更新购物车商品选择状态 -->
+    <update id="updateCartItemSelection">
+        UPDATE cart_item
+        SET selected = #{selected},
+            updated_time = NOW()
+        WHERE id = #{id}
+        AND status = 1
+    </update>
+
+    <!-- 根据购物车ID更新所有商品选择状态 -->
+    <update id="updateAllCartItemSelections">
+        UPDATE cart_item
+        SET selected = #{selected},
+            updated_time = NOW()
+        WHERE cart_id = #{cartId}
+        AND status = 1
+    </update>
+
+    <!-- 获取用户购物车商品数量 -->
+    <select id="selectCartItemCountByUserId" resultType="java.lang.Integer">
+        SELECT IFNULL(SUM(ci.quantity), 0)
+        FROM cart c
+        LEFT JOIN cart_item ci ON c.id = ci.cart_id AND ci.status = 1
+        WHERE c.user_id = #{userId}
+        AND c.status = 1
+    </select>
+
+    <!-- 获取用户选中商品数量 -->
+    <select id="selectSelectedItemCountByUserId" resultType="java.lang.Integer">
+        SELECT IFNULL(SUM(ci.quantity), 0)
+        FROM cart c
+        LEFT JOIN cart_item ci ON c.id = ci.cart_id AND ci.status = 1
+        WHERE c.user_id = #{userId}
+        AND c.status = 1
+        AND ci.selected = 1
+    </select>
+
+</mapper>

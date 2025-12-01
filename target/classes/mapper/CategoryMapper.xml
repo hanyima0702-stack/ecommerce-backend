@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ecommerce.mapper.CategoryMapper">
+
+    <!-- 分类结果映射 -->
+    <resultMap id="CategoryResultMap" type="com.ecommerce.entity.Category">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="parent_id" property="parentId"/>
+        <result column="level" property="level"/>
+        <result column="sort_order" property="sortOrder"/>
+        <result column="icon" property="icon"/>
+        <result column="image_url" property="imageUrl"/>
+        <result column="status" property="status"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_time" property="updatedTime"/>
+    </resultMap>
+
+    <!-- 包含子分类的结果映射 -->
+    <resultMap id="CategoryWithChildrenResultMap" type="com.ecommerce.entity.Category" extends="CategoryResultMap">
+        <collection property="children" ofType="com.ecommerce.entity.Category" resultMap="CategoryResultMap"/>
+    </resultMap>
+
+    <!-- 基础列名 -->
+    <sql id="Category_Column_List">
+        id, name, parent_id, level, sort_order, icon, image_url,
+        status, created_time, updated_time
+    </sql>
+
+    <!-- 查询所有分类 -->
+    <select id="selectAllCategories" resultMap="CategoryResultMap">
+        SELECT <include refid="Category_Column_List"/>
+        FROM category
+        WHERE status = 1
+        ORDER BY sort_order ASC, id ASC
+    </select>
+
+    <!-- 查询顶级分类 -->
+    <select id="selectTopCategories" resultMap="CategoryResultMap">
+        SELECT <include refid="Category_Column_List"/>
+        FROM category
+        WHERE parent_id = 0 AND status = 1
+        ORDER BY sort_order ASC, id ASC
+    </select>
+
+    <!-- 根据父级ID查询子分类 -->
+    <select id="selectChildrenByParentId" resultMap="CategoryResultMap">
+        SELECT <include refid="Category_Column_List"/>
+        FROM category
+        WHERE parent_id = #{parentId} AND status = 1
+        ORDER BY sort_order ASC, id ASC
+    </select>
+
+    <!-- 根据ID查询分类 -->
+    <select id="selectCategoryById" resultMap="CategoryResultMap">
+        SELECT <include refid="Category_Column_List"/>
+        FROM category
+        WHERE id = #{id}
+        AND status = 1
+    </select>
+
+    <!-- 根据级别查询分类 -->
+    <select id="selectCategoriesByLevel" resultMap="CategoryResultMap">
+        SELECT <include refid="Category_Column_List"/>
+        FROM category
+        WHERE level = #{level} AND status = 1
+        ORDER BY sort_order ASC, id ASC
+    </select>
+
+    <!-- 根据名称搜索分类 -->
+    <select id="selectCategoriesByName" resultMap="CategoryResultMap">
+        SELECT <include refid="Category_Column_List"/>
+        FROM category
+        WHERE name LIKE CONCAT('%', #{name}, '%')
+        AND status = 1
+        ORDER BY sort_order ASC, id ASC
+        LIMIT 20
+    </select>
+
+    <!-- 插入分类 -->
+    <insert id="insertCategory" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO category (
+            name, parent_id, level, sort_order, icon, image_url,
+            status, created_time, updated_time
+        ) VALUES (
+            #{name},
+            #{parentId},
+            #{level},
+            #{sortOrder},
+            #{icon},
+            #{imageUrl},
+            #{status},
+            NOW(),
+            NOW()
+        )
+    </insert>
+
+    <!-- 更新分类 -->
+    <update id="updateCategory">
+        UPDATE category
+        SET name = #{name},
+            parent_id = #{parentId},
+            level = #{level},
+            sort_order = #{sortOrder},
+            icon = #{icon},
+            image_url = #{imageUrl},
+            status = #{status},
+            updated_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除分类 -->
+    <update id="deleteCategory">
+        UPDATE category
+        SET status = 0,
+            updated_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>

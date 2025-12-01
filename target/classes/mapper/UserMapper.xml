@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ecommerce.mapper.UserMapper">
+
+    <!-- 用户结果映射 -->
+    <resultMap id="UserResultMap" type="com.ecommerce.entity.User">
+        <id column="id" property="id"/>
+        <result column="username" property="username"/>
+        <result column="password" property="password"/>
+        <result column="email" property="email"/>
+        <result column="phone" property="phone"/>
+        <result column="nickname" property="nickname"/>
+        <result column="avatar" property="avatar"/>
+        <result column="gender" property="gender"/>
+        <result column="birthday" property="birthday"/>
+        <result column="status" property="status"/>
+        <result column="last_login_time" property="lastLoginTime"/>
+        <result column="last_login_ip" property="lastLoginIp"/>
+        <result column="created_time" property="createdTime"/>
+        <result column="updated_time" property="updatedTime"/>
+    </resultMap>
+
+    <!-- 基础列名 -->
+    <sql id="User_Column_List">
+        id, username, password, email, phone, nickname, avatar,
+        gender, birthday, status, last_login_time, last_login_ip,
+        created_time, updated_time
+    </sql>
+
+    <!-- 根据ID查询用户 -->
+    <select id="selectUserById" resultMap="UserResultMap">
+        SELECT <include refid="User_Column_List"/>
+        FROM `user`
+        WHERE id = #{id}
+        AND status = 1
+    </select>
+
+    <!-- 根据邮箱查询用户 -->
+    <select id="selectUserByEmail" resultMap="UserResultMap">
+        SELECT <include refid="User_Column_List"/>
+        FROM `user`
+        WHERE email = #{email}
+        AND status = 1
+    </select>
+
+    <!-- 根据手机号查询用户 -->
+    <select id="selectUserByPhone" resultMap="UserResultMap">
+        SELECT <include refid="User_Column_List"/>
+        FROM `user`
+        WHERE phone = #{phone}
+        AND status = 1
+    </select>
+
+    <!-- 根据用户名查询用户 -->
+    <select id="selectUserByUsername" resultMap="UserResultMap">
+        SELECT <include refid="User_Column_List"/>
+        FROM `user`
+        WHERE username = #{username}
+        AND status = 1
+    </select>
+
+    <!-- 检查邮箱是否存在 -->
+    <select id="checkEmailExists" resultType="int">
+        SELECT COUNT(1)
+        FROM `user`
+        WHERE email = #{email}
+        AND status = 1
+    </select>
+
+    <!-- 检查手机号是否存在 -->
+    <select id="checkPhoneExists" resultType="int">
+        SELECT COUNT(1)
+        FROM `user`
+        WHERE phone = #{phone}
+        AND status = 1
+    </select>
+
+    <!-- 检查用户名是否存在 -->
+    <select id="checkUsernameExists" resultType="int">
+        SELECT COUNT(1)
+        FROM `user`
+        WHERE username = #{username}
+        AND status = 1
+    </select>
+
+    <!-- 插入用户 -->
+    <insert id="insertUser" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO `user` (
+            username, password, email, phone, nickname, avatar,
+            gender, birthday, status, last_login_time, last_login_ip,
+            created_time, updated_time
+        ) VALUES (
+            #{username},
+            #{password},
+            #{email},
+            #{phone},
+            #{nickname},
+            #{avatar},
+            #{gender},
+            #{birthday},
+            #{status},
+            #{lastLoginTime},
+            #{lastLoginIp},
+            NOW(),
+            NOW()
+        )
+    </insert>
+
+    <!-- 更新用户 -->
+    <update id="updateUser">
+        UPDATE `user`
+        SET username = #{username},
+            password = #{password},
+            email = #{email},
+            phone = #{phone},
+            nickname = #{nickname},
+            avatar = #{avatar},
+            gender = #{gender},
+            birthday = #{birthday},
+            status = #{status},
+            last_login_time = #{lastLoginTime},
+            last_login_ip = #{lastLoginIp},
+            updated_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 更新用户密码 -->
+    <update id="updatePassword">
+        UPDATE `user`
+        SET password = #{password},
+            updated_time = #{updatedTime}
+        WHERE id = #{userId}
+    </update>
+
+    <!-- 更新用户登录信息 -->
+    <update id="updateUserLoginInfo">
+        UPDATE `user`
+        SET last_login_time = #{lastLoginTime},
+            last_login_ip = #{lastLoginIp},
+            updated_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>
